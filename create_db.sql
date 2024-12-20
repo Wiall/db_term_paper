@@ -4,7 +4,7 @@ CREATE DATABASE exam_db;
 USE exam_db;
 
 CREATE TABLE School (
-    id_school INT NOT NULL CHECK (id_school > 0),
+    id_school INT AUTO_INCREMENT NOT NULL,
     name_school VARCHAR(50) NOT NULL,
     type_of_edu_inst VARCHAR(50) NOT NULL,
     region VARCHAR(50) NOT NULL,
@@ -18,7 +18,7 @@ CREATE TABLE School (
 );
 
 CREATE TABLE Student(
-    id_student INT NOT NULL CHECK (id_student > 0),
+    id_student INT AUTO_INCREMENT NOT NULL,
     last_name VARCHAR(50) NOT NULL,
     first_name VARCHAR(50) NOT NULL,
     middle_name VARCHAR(50) NOT NULL,
@@ -46,10 +46,8 @@ CREATE TABLE Student_docs (
                     ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-
-
 CREATE TABLE Subject (
-    id_subject INT NOT NULL CHECK ( id_subject > 0 ),
+    id_subject INT AUTO_INCREMENT NOT NULL,
     name_of_subject VARCHAR(50) UNIQUE NOT NULL,
     type_of_subject VARCHAR(50) NOT NULL,
 
@@ -58,11 +56,12 @@ CREATE TABLE Subject (
 );
 
 CREATE TABLE Exam (
-    id_exam INT NOT NULL CHECK ( id_exam > 0 ),
+    id_exam INT AUTO_INCREMENT NOT NULL,
     date_of_holding DATETIME NOT NULL,
     form_of_conduct VARCHAR(50) NOT NULL,
     difficulty_level VARCHAR(50) NOT NULL,
     session VARCHAR(50) NOT NULL,
+    status VARCHAR(20) NOT NULL,
     max_score INT DEFAULT 200,
     passing_score INT DEFAULT 125,
     duration TIME NOT NULL DEFAULT '04:00:00',
@@ -91,7 +90,7 @@ CREATE TABLE Registration_docs(
 
 
 CREATE TABLE Testing_center (
-    id_testing_center INT NOT NULL CHECK ( id_testing_center > 0 ),
+    id_testing_center INT AUTO_INCREMENT NOT NULL,
     name_of_test_center VARCHAR(50) NOT NULL,
     contact_number VARCHAR(15) NOT NULL,
     region VARCHAR(50) NOT NULL,
@@ -104,7 +103,7 @@ CREATE TABLE Testing_center (
 );
 
 CREATE TABLE Exam_Testing_center(
-    record_id INT NOT NULL AUTO_INCREMENT,
+    record_id INT AUTO_INCREMENT NOT NULL,
     audience_number VARCHAR(5),
     id_exam INT NOT NULL,
     id_testing_center INT NOT NULL,
@@ -117,9 +116,8 @@ CREATE TABLE Exam_Testing_center(
                                 ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-
 CREATE TABLE Grade (
-    id_grade INT NOT NULL AUTO_INCREMENT,
+    id_grade INT AUTO_INCREMENT NOT NULL,
     numerical_value INT NOT NULL,
     evaluation_date DATETIME NOT NULL,
     registration_docs_number VARCHAR(16) NOT NULL,
@@ -129,9 +127,10 @@ CREATE TABLE Grade (
     CONSTRAINT FK_Grade_Registration_docs FOREIGN KEY (registration_docs_number) REFERENCES Registration_docs(number)
                                 ON DELETE CASCADE ON UPDATE CASCADE
 );
+ALTER TABLE Grade AUTO_INCREMENT = 1;
 
 CREATE TABLE Appeal(
-    appeal_id INT NOT NULL AUTO_INCREMENT,
+    appeal_id INT AUTO_INCREMENT NOT NULL,
     date_of_filing DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP(),
     status VARCHAR(20) NOT NULL,
     id_grade INT NOT NULL,
@@ -154,13 +153,7 @@ CREATE TABLE Certificate (
     CONSTRAINT UC_Student_Year UNIQUE (id_student, year_of_certificate)
 );
 
--- Створюємо тригер для автоматичного заповнення поля year_of_certificate
-DELIMITER //
-CREATE TRIGGER before_insert_certificate
-BEFORE INSERT ON Certificate
-FOR EACH ROW
-BEGIN
-    SET NEW.year_of_certificate = YEAR(NEW.certificate_issuance_date);
-END;
-//
-DELIMITER ;
+ALTER TABLE Subject ADD INDEX idx_name_of_subject(name_of_subject);
+ALTER TABLE Grade ADD INDEX idx_numerical_value(numerical_value);
+ALTER TABLE Student  ADD INDEX idx_numerical_value(id_student);
+ALTER TABLE Exam ADD INDEX idx_numerical_value(id_exam);
