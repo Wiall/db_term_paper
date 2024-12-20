@@ -1,7 +1,5 @@
 USE exam_db;
 
--- Додавання запису до таблиці School
--- Школа повинна мати унікальні контактний номер та email
 DROP PROCEDURE IF EXISTS AddSchool;
 DELIMITER //
 CREATE PROCEDURE AddSchool(
@@ -37,8 +35,7 @@ END;
 //
 DELIMITER ;
 
--- Зміна номера телефону студента
--- Новий номер телефону повинен бути унікальним
+
 DELIMITER //
 CREATE PROCEDURE UpdateStudentPhone(
     IN p_id_student INT,
@@ -59,8 +56,7 @@ END;
 //
 DELIMITER ;
 
--- Підрахунок студентів за id_school
--- Підраховує лише активних студентів (дані не видалені)
+
 DELIMITER //
 CREATE FUNCTION GetStudentCount(p_school_id INT)
 RETURNS INT
@@ -75,23 +71,19 @@ END;
 //
 DELIMITER ;
 
--- Видалення запису з таблиці Subject
--- Заборонено видаляти предмети, до яких прив’язані екзамени
+
 DROP PROCEDURE IF EXISTS DeleteSubject;
 DELIMITER //
 CREATE PROCEDURE DeleteSubject(
     IN p_id_subject INT
 )
 BEGIN
-    -- Перевірка наявності екзаменів, прив'язаних до предмету
     IF EXISTS (
         SELECT 1 FROM Exam WHERE id_subject = p_id_subject
     ) THEN
-        -- Виведення повідомлення про неможливість видалення предмету
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Не можна видалити предмет, до якого прив\'язані екзамени.';
     ELSE
-        -- Видалення запису з таблиці Subject, якщо немає прив'язаних екзаменів
         DELETE FROM Subject WHERE id_subject = p_id_subject;
     END IF;
 END;
@@ -99,8 +91,6 @@ END;
 DELIMITER ;
 
 
--- Додавання запису до таблиці Registration_docs
--- Перевіряється, чи студент вже зареєстрований на цей іспит
 DROP PROCEDURE IF EXISTS RegisterStudentForExam;
 
 DELIMITER //
@@ -119,9 +109,6 @@ END;
 DELIMITER ;
 
 
-
--- Додавання апеляції до таблиці Appeal
--- Перевіряється, чи існує оцінка, до якої подається апеляція
 DROP PROCEDURE IF EXISTS SubmitAppeal;
 DELIMITER //
 CREATE PROCEDURE SubmitAppeal(
@@ -134,8 +121,6 @@ END;
 //
 DELIMITER ;
 
--- Розрахувати середній бал усіх студентів, які складали конкретний іспит.
--- Іспит вважається проведеним, якщо по ньому є хоча б одна оцінка
 
 DELIMITER //
 CREATE PROCEDURE CalculateAverageExamScore(
@@ -152,10 +137,7 @@ END;
 DELIMITER ;
 
 
--- Перевірити, чи студент склав певний іспит.
--- Іспит вважається зданим, якщо оцінка ≥ passing_score з таблиці Exam
 DROP FUNCTION IF EXISTS IsStudentPassing;
-
 DELIMITER //
 CREATE FUNCTION IsStudentPassing(p_id_student INT, p_id_exam INT)
 RETURNS INT
@@ -181,8 +163,6 @@ END;
 DELIMITER ;
 
 
--- Отримати список студентів, які не склали конкретний іспит.
--- Іспит вважається не зданим, якщо його бал нижчий за passing_score
 DROP PROCEDURE IF EXISTS GetFailedStudents;
 DELIMITER //
 CREATE PROCEDURE GetFailedStudents(
@@ -199,8 +179,7 @@ END;
 //
 DELIMITER ;
 
--- Повертає статус конкретної апеляції
--- Статус може бути "Подана", "Розглядається", "Підтверджена" або "Відхилена"
+
 DROP FUNCTION IF EXISTS GetAppealStatus;
 DELIMITER //
 CREATE FUNCTION GetAppealStatus(p_appeal_id INT)
@@ -216,8 +195,6 @@ END;
 //
 DELIMITER ;
 
--- Підрахунок кількості сертифікатів за рік
--- Дані можуть використовуватися для щорічного звіту
 
 DELIMITER //
 CREATE FUNCTION GetCertificateCountByYear(p_year INT)
@@ -233,14 +210,13 @@ END;
 //
 DELIMITER ;
 
--- Розрахунок середнього балу для всіх учнів
+
 DELIMITER //
 CREATE PROCEDURE UpdateAllStudentsAverageScores()
 BEGIN
     DECLARE done INT DEFAULT FALSE;
     DECLARE student_id INT;
 
-    -- Курсор для обходу всіх студентів
     DECLARE cur CURSOR FOR SELECT id_student FROM Student;
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
 
@@ -260,8 +236,7 @@ END;
 //
 DELIMITER ;
 
--- ------------------------- PROCEDURES FOR TRIGGERS ---------------------------- --
--- Розрахунок та зміна середнього (конкурсного) балу для конкретного студента
+
 DELIMITER //
 CREATE PROCEDURE GetAndUpdateStudentAverageScore(IN student_id INT)
 BEGIN
@@ -282,7 +257,6 @@ DELIMITER ;
 
 
 DROP PROCEDURE IF EXISTS ValidatePhoneNumber;
--- Процедура для перевірки номера телефону
 DELIMITER //
 CREATE PROCEDURE ValidatePhoneNumber(IN phone_number VARCHAR(15))
 BEGIN
@@ -294,7 +268,6 @@ END;
 //
 DELIMITER //
 
--- Процедура для перевірки статусу сертифіката
 CREATE PROCEDURE UpdateCertificateStatus(IN cert_number VARCHAR(16), IN issuance_date DATE)
 BEGIN
     IF TIMESTAMPDIFF(YEAR, issuance_date, CURRENT_DATE()) > 3 THEN

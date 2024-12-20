@@ -1,7 +1,5 @@
 USE exam_db;
 
--- У таблиці Student поле comp_score має зберігати середній бал студента за всіма іспитами
--- AFTER INSERT тригер
 DELIMITER //
 CREATE TRIGGER after_grade_insert
 AFTER INSERT ON Grade
@@ -18,7 +16,6 @@ END;
 //
 DELIMITER //
 
--- AFTER UPDATE тригер
 DELIMITER //
 CREATE TRIGGER after_grade_update
 AFTER UPDATE ON Grade
@@ -35,8 +32,7 @@ END;
 //
 DELIMITER ;
 
--- Поле phone_number у таблиці Student не може містити некоректний номер (довжина < 10 або більше 15 символів)
--- BEFORE INSERT тригер
+
 DELIMITER //
 CREATE TRIGGER before_insert_student
 BEFORE INSERT ON Student
@@ -47,7 +43,6 @@ END;
 //
 DELIMITER ;
 
--- BEFORE UPDATE тригер
 DELIMITER //
 CREATE TRIGGER before_update_student
 BEFORE UPDATE ON Student
@@ -58,8 +53,8 @@ END;
 //
 DELIMITER //
 
+
 DROP TRIGGER IF EXISTS before_insert_registration_docs;
--- Неможливо додати запис у таблицю Registration_docs із комбінацією, яка вже існує
 DELIMITER //
 CREATE TRIGGER before_insert_registration_docs
 BEFORE INSERT ON Registration_docs
@@ -76,8 +71,8 @@ BEGIN
 END//
 DELIMITER ;
 
-DELIMITER //
 
+DELIMITER //
 CREATE TRIGGER prevent_duplicate_subject_registration
 BEFORE INSERT ON Registration_docs
 FOR EACH ROW
@@ -99,7 +94,6 @@ BEGIN
         SET MESSAGE_TEXT = 'Учень вже зареєстрований на екзамен із цього предмета.';
     END IF;
 END//
-
 DELIMITER ;
 
 DELIMITER //
@@ -109,12 +103,10 @@ FOR EACH ROW
 BEGIN
     DECLARE exam_date DATE;
 
-    -- Отримуємо дату проведення екзамену
     SELECT date_of_holding INTO exam_date
     FROM Exam
     WHERE id_exam = NEW.id_exam;
 
-    -- Перевіряємо, чи дата реєстрації не раніше, ніж за 6 місяців до дати проведення екзамену
     IF NEW.date_of_registration < DATE_ADD(exam_date, INTERVAL -6 MONTH) THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Дата реєстрації повинна бути не більше, ніж за 6 місяців до дати проведення екзамену.';
@@ -153,7 +145,6 @@ END//
 
 DELIMITER ;
 
--- ----------------------------- EVENTS --------------------------------
 CREATE EVENT update_exam_status_event
 ON SCHEDULE EVERY 1 DAY
 DO
